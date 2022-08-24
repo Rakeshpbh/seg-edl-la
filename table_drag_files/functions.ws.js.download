@@ -1,0 +1,253 @@
+/* Web socket server */
+var socket				= null;
+// This sends a querystring from broadcaster to server when an event is initiated
+// should be included in the event functions such as submitForm(), etc.
+function ajaxSend(srcP, srcT, srcE, srcV){
+	//p = pageID
+	//e = element id
+	//t = event type
+	//v = value
+	var qs = '?p='+ srcP + '&e='+ srcE + '&t=' + srcT + '&v='+ srcV;
+
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+		xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+
+	xmlhttp.open("GET", "../includes/seg_action_reg.jsp"+ qs, true);
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+			// sendconf: a hidden input on page header
+			document.getElementById("sendconf").value=xmlhttp.responseText;
+			
+			if (document.getElementById("sendconf").value == '1') {
+				console.log("fa of event action from server");
+			} else{
+				// resend if not resent over 3 times
+				if (document.getElementById('ajaxResend').value < 2){
+					xmlhttp.open("GET", "../includes/seg_action_reg.jsp"+ qs, true);
+					document.getElementById('ajaxResend').value = parseint(document.getElementById('ajaxResend').value) + 1;
+				}else{
+
+				}	
+			}
+		}
+	}
+
+	xmlhttp.send();
+}
+
+
+function ajaxSendReg(srcP, srcA){
+	
+	var newActIdx = parseint(srcA) + 1;
+	console.log(newActIdx);
+	var qs = '?p=' + srcP + '&i=' + newActIdx;
+
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+		xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+
+	xmlhttp.open("GET", "../includes/seg_listen_action_reg.jsp"+ qs, true);
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+			
+			
+			if (xmlhttp.responseText == '1') {
+				console.log("fa of event action from server");
+			} else {
+				alert('listener fa!!');
+				// maybe send again?  
+			}
+		}
+	}
+	xmlhttp.send();
+	console.log('current action idx should be:' + document.getElementById('actcount').value);
+
+}
+
+/*
+	This function just makes sure the client is up to date on transactions.  It's "eventual" consistency in case anything happens.
+	We can spawn a number of threads to make sure all the actions are up to date.
+	
+	So this is the core listener event for web worker side.
+*/
+function workerCheckState() {
+	var myCheck				= new Worker('../js/broadcastProto/workers/infinite.js');
+	myCheck.addEventListener('message', function(e) {
+		var intAction		= e.data;
+		ajaxGet('getJsonObj');
+		var JSONevent	= document.getElementById('getJsonObj').value;
+		console.log(JSONevent);	
+		// console.log("Received worker event:  " + e.data + " // " + JSONevent);
+
+		// parseJSON(JSONevent);
+
+		// var JSONevent = JSON.parse(JSONevent);		
+		// console.log(JSONevent);	
+		
+		
+		var JSONevent = JSON.parse(JSONevent);		// parse the JSON object
+		var size = JSONevent.data.length;
+		
+		var currentPageIdx = document.getElementById('pgcount').value;	
+		var currentActIdx = document.getElementById('actcount').value;
+		var boolCreateReport = document.getElementById('boolCR').value;
+
+
+		for (i=0; i<size; i++){
+			if(JSONevent.data[i].t == 'na'){
+			}else{
+				console.log('json pg id: ' + JSONevent.data[i].p + '; --- current pgid: ' + currentPageIdx);
+				if (JSONevent.data[i].p == currentPageIdx){	
+
+					if
+					(JSONevent.data[i].t == 'createReport'){
+
+						if (boolCreateReport == '0'){
+							document.getElementById(JSONevent.data[i].e).click(); 	
+							// SET HERE DOES NOT WORK!! have to set value in the call function when user clicks the freaking btm
+							// document.getElementById('boolCR').value = '1';
+							ajaxSendReg(currentPageIdx,currentActIdx);
+						}else{
+							// console.log('report has been created already.');
+							break;
+						}
+
+					}else if
+					(JSONevent.data[i].t == 'inputDatachange'){
+						//need to put a function in <input> when onchange get element id
+						document.getElementById(JSONevent.data[i].e).value = JSONevent.data[i].v;
+						ajaxSendReg(currentPageIdx, currentActIdx);
+					}else{
+
+					}
+				}else{
+					console.log('json pg id: ' + JSONevent.data[i].p + '; --- current pgid: ' + currentPageIdx + '; page url is: ' + JSONevent.data[i].u);															
+					window.location.href =  JSONevent.data[i].u + '&n=1';
+					
+				}
+			}
+		}
+
+
+	}, false);
+	myCheck.postMessage(3);			// time to sleep in seconds
+}
+
+
+function connectWS() {
+	if (socket == null) {
+		if (window.location.protocol == 'http:') {
+			socket					= new WebSocket('ws://'+ window.location.host +'/apylite/websocket/socketserverbasic');
+		} else {
+			socket					= new WebSocket('wss://'+ window.location.host +'/apylite/websocket/socketserverbasic');
+		}	
+	}
+}
+
+/*
+	This function retrieves JSON objects directly from the server whenever the listener checks with the server
+	It could be an array of objects or one single object
+*/
+function ajaxGet(srcTarget) {
+	// var responseObj = '';
+
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+		xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+			document.getElementById(srcTarget).value=xmlhttp.responseText;
+		}
+	}
+
+	var currentPageIdx = document.getElementById('pgcount').value;
+	var currentActIdx = document.getElementById('actcount').value;
+
+	xmlhttp.open("GET","../includes/seg_web_worker_json.jsp?p="+currentPageIdx+"&i=" + currentActIdx ,true);
+	console.log("GET","../includes/seg_web_worker_json.jsp?p="+currentPageIdx+"&i=" + currentActIdx);
+	xmlhttp.send();
+	
+	// return responseObj;	
+}
+
+/*
+	This is the core listener event for WebSocket.
+*/
+function socketWatchJSON() {
+	// alert('We are starting to listen for JSON events.');
+	// This is the new version of watching the JSON
+	// console.log('watchJSON has been called.');
+	socket.onmessage				= function(message) {
+	
+	parseJSON(message.data);
+	}
+}
+
+/*
+	This is where the main event logic function
+	Input is the raw json object
+*/
+function parseJSON(srcJSON){
+	console.log(srcJSON);
+	var JSONevent = JSON.parse(srcJSON);		
+	console.log(JSONevent);									// parse the JSON object
+	var size = JSONevent.data.length;
+	console.log(size + ' event(s) has/have happened since last check.');
+	
+	var currentPageIdx = document.getElementById('pgcount').value;					// get the current page id from page header
+		
+	for (i=0; i<size; i++){
+		if (JSONevent.data[i].p == currentPageIdx){							//if the obj's pageID = current pageID, check actions
+			if(JSONevent.data[i].t == 'createReport'){
+				document.getElementById(JSONevent.data[i].e).addEventListener("click", function(){});
+			}else if( JSONevent.data[i].t == ''){
+				//
+			}
+		}else{
+																			//if the obj's pageID != current pageID, navigate to the new page
+			console.log(JSONevent.data[i].p);
+		}
+	}
+
+
+
+}
+
+
+/*
+	These are function acknowledgements on broadcaster's side
+	Need to incorporate in DOM
+*/
+
+function fa(srcType, srcEle, srcPath){
+	send("type="+ srcType +"&path="+ srcPath + "&element=" + srcEle);	
+	return true;
+}
+
+function fa(srcType, srcEle){
+	send("type="+ srcType + "&element=" + srcEle);	
+	return true;
+}
+
+function fa(srcType, srcEle, srcValue){
+	send("type="+ srcType + "&element=" + srcEle + "&value=" + srcValue);
+	return true;	
+}
+
+/*
+	These are js events on listener's side
+	Can be called in the core listener event logics
+*/
+function hightlight(srcEle){
+	document.getElementById(srcEle).style.backgroundColor = '#9cbeff';
+	document.getElementById(srcEle).style.border = '1px solid #64aad0';
+}

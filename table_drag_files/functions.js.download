@@ -1,0 +1,743 @@
+var timeout;
+
+function watchTimeout(srcTime) {
+	var watchtime			= (srcTime * 1000);
+	document.onmousemove = function(){
+	  clearTimeout(timeout);
+	  timeout 		= setTimeout(function(){stillThere()}, watchtime);
+	}
+	
+	document.onkeypress = function() { 
+	  clearTimeout(timeout);
+	  timeout 		= setTimeout(function(){stillThere()}, watchtime);	
+	}
+	
+	document.onclick = function() { 
+	  clearTimeout(timeout);
+	  timeout 		= setTimeout(function(){stillThere()}, watchtime);	
+	}
+}
+
+function incrementVal(srcTarget) { 
+	document.getElementById(srcTarget).value++;	
+}
+
+function resetTimer() { 
+	hideId('timeout');
+	clearTimeout(timeout);	
+}
+
+function closePopup() { 
+	hideId('popup');	
+}
+
+function stillThere() {
+	displayId("timeout");
+	timeout			= setTimeout(function(){logout()},20000);
+}
+
+function logout() { 
+	redirect("index.jsp?timeout=true");
+}
+
+function newPopup(url) {
+	popupWindow = window.open(url,'ABZ','height=700,width=800,left=10,top=10,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=yes');
+}
+
+function submitForm(strID, strAction) {
+  document.sform.action=strAction;
+  var pgid = document.getElementById('pgcount').value;
+  ajaxSend(pgid,'createReport',strID,'');
+  document.getElementById('boolCR').value = '1';
+  return true;
+}
+
+function hideId(id) { 
+	document.getElementById(id).style.display = "none";
+}
+
+function displayId(id) { 
+	document.getElementById(id).style.display = "block";
+}
+
+function submitFormId(id) { 
+	document.getElementById(id).submit();
+}
+
+function toggleview(divid) {
+	var currdisp			= document.getElementById(divid).style.display;
+	if (currdisp == "block") { 
+		document.getElementById(divid).style.display = "none";
+	} else { 
+		document.getElementById(divid).style.display = "block";
+	}
+}
+
+function toggleAll(srcID, srcTable, intStart, intEnd) {
+	if (document.getElementById(srcID +"t-"+ srcTable).value=="yes") { 
+		uncheckAll(srcID,intStart,intEnd);
+		document.getElementById(srcID +"t-"+ srcTable).value="no";
+	} else {
+		checkAll(srcID,intStart,intEnd);
+		document.getElementById(srcID +"t-"+ srcTable).value="yes";
+	}
+}
+
+function checkAll(srcID, intStart, intEnd) { 
+	for (i = intStart ; i < intEnd ; i++) { 
+		document.getElementById(srcID + "-"+ i).checked = true;	
+	}
+}
+
+function uncheckAll(srcID, intStart, intEnd) { 
+	for (i = intStart ; i < intEnd ; i++) { 
+		document.getElementById(srcID + "-"+ i).checked = false;	
+	}
+}
+
+function togglecb(id) { 
+	if (document.getElementById(id).checked == true) { 
+		document.getElementById(id).checked = false;
+	} else { 
+		document.getElementById(id).checked = true;
+	}
+}
+
+function clearval(id) { 
+	document.getElementById("val-" + id).value = "";	
+	document.getElementById("lb-" + id).value = "";		
+	document.getElementById("vw-" + id).style.display = "none";
+}
+
+function pickpl(dbvalue,label,id) {
+	pick(dbvalue,label,id);
+}
+
+function pick(dbvalue,label,id) {
+	document.getElementById("lb-"+ id).value = label;	
+	document.getElementById("val-"+ id).value = dbvalue;	
+	document.getElementById("vw-"+ id).style.display = "none";
+}
+
+function setHTML(srcTarget,srcValue) { 
+	document.getElementById(srcTarget).innerHTML=srcValue;
+}
+
+function ajaxPoller(srcTarget,srcPage,srcVar,srcString) {
+	var value			= trim(document.getElementById(srcString).value);
+	if (value.length == 0) {
+		setHTML(srcTarget,value);	
+	} else {
+		var qs			= srcVar + "=" + value;
+		if (window.XMLHttpRequest) { 
+			xmlhttp		= new XMLHttpRequest();
+		} else { 
+			xmlhttp		= new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		
+		xmlhttp.onreadystatechange = function() {
+			var output	= xmlhttp.responseText;
+			// setHTML(srcTarget,"ready state:"+ xmlhttp.readyState + "  status:  "+ xmlhttp.status + "   value:  "+ value);
+			if (output.length > 0) {
+				setHTML(srcTarget,output);
+			} else { 
+				// ajaxPoll(srcTarget,srcPage,srcVar,srcString);
+				// setHTML(srcTarget,"I didn't get jack squat");// setHTML(srcTarget,"length:  0");	
+			}
+		}
+		xmlhttp.timeout = 4000;
+		xmlhttp.ontimeout = function () { alert("Timed out!!!"); }
+		xmlhttp.open("GET",srcPage +"?"+ qs,true);
+		xmlhttp.send();
+	}
+}
+
+function ajaxPoll(srcTarget,srcPage,srcVar,srcString) {
+	min				= 1;	
+	var value		= trim(document.getElementById(srcString).value);
+	// var counter		= parseInt(getVal('schar')) + 1;
+	q				= "";
+	
+	if (value.length >= min) { 
+		q			= srcVar +"="+ value;
+		if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+		  xmlhttp	= new XMLHttpRequest();
+		} else {									// code for IE6, IE5
+		  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		
+		xmlhttp.onreadystatechange=function() {
+			
+			  if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+			  	  var output	= xmlhttp.responseText.trim();
+			  	  if (output.length > 0) {
+			  	  	  setHTML(srcTarget,output);
+			  	  	  
+			  	  	  // setHTML(srcTarget,getVal('schar') + " -- " + counter);
+			  	  	  /*
+			  	  	  if (getVal('schar') == counter) {
+			  	  	  	 setHTML(srcTarget,output);
+			  	  	  } else {
+			  	  	  	  // setHTML(srcTarget,'No Joy');
+			  	  	  }
+			  	  	  */
+			  	  	  // document.getElementById(srcTarget).innerHTML=xmlhttp.responseText;
+			  	  } else { 
+			  	  	// alert("No value from "+ value);  
+			  	  }
+			  }
+		}
+		
+		xmlhttp.open("GET",srcPage +"?"+ q,true);
+		xmlhttp.send();
+		// incrementVal('schar');
+	} else { 
+		ajaxLoad(srcTarget,srcPage);
+	}
+}
+
+function ajaxPollBeta(srcTarget,srcPage,srcVar,srcString) {
+	min				= 1;	
+	var value		= trim(document.getElementById(srcString).value);
+	// var counter		= parseInt(getVal('schar')) + 1;
+	q				= "";
+	
+	if (value.length >= min) { 
+		q			= srcVar +"="+ value;
+		if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+		  xmlhttp	= new XMLHttpRequest();
+		} else {									// code for IE6, IE5
+		  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+		}
+		
+		xmlhttp.onreadystatechange=function() {
+			
+			  if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+			  	  var output	= xmlhttp.responseText.trim();
+			  	  if (output.length > 0) {
+			  	  	  setHTML(srcTarget,output);
+			  	  	  
+			  	  	  // setHTML(srcTarget,getVal('schar') + " -- " + counter);
+			  	  	  /*
+			  	  	  if (getVal('schar') == counter) {
+			  	  	  	 setHTML(srcTarget,output);
+			  	  	  } else {
+			  	  	  	  // setHTML(srcTarget,'No Joy');
+			  	  	  }
+			  	  	  */
+			  	  	  // document.getElementById(srcTarget).innerHTML=xmlhttp.responseText;
+			  	  } else { 
+			  	  	// alert("No value from "+ value);  
+			  	  }
+			  }
+		}
+		
+		xmlhttp.open("GET",srcPage +"?"+ q,true);
+		xmlhttp.send();
+		// incrementVal('schar');
+	} else { 
+		ajaxLoad(srcTarget,srcPage);
+	}
+}
+
+function simpleLoad(srcTarget,srcPage) {
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+	  xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+	  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.onreadystatechange=function() {
+	  if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+		 document.getElementById(srcTarget).innerHTML=xmlhttp.responseText;
+	  }
+	}
+	
+	xmlhttp.open("GET",srcPage,true);
+	xmlhttp.send();			
+}
+
+function checkState(srcPage) {
+	loadingPause(srcPage)
+	setTimeout(function(){checkState(srcPage)},1000);
+}
+
+function loadingPause(srcPage) {
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp	= new XMLHttpRequest();
+	} else {							// code for IE6, IE5
+		xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.onreadystatechange=function() {
+		if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+			hideId('loading');
+		}
+	}
+	
+	xmlhttp.open("GET",srcPage,true);
+	xmlhttp.send();
+}
+
+function ajaxLoad(srcTarget,srcPage) {
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+	  xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+	  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.onreadystatechange=function() {
+	  if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+		 document.getElementById(srcTarget).innerHTML=xmlhttp.responseText;
+	  }
+	}
+	
+	xmlhttp.open("GET",srcPage,true);
+	xmlhttp.send();			
+}
+
+function trim(stringToTrim) {
+	return stringToTrim.replace(/^\s+|\s+$/g,"");
+}
+	
+function enableAC(fld,url) {
+	YUI({ 
+    base: '/bibo/enterprise/js/build/'
+}).use('autocomplete',  function (Y) {
+		Y.one(fld).plug(Y.Plugin.AutoComplete, {
+			resultListLocator: 'field',
+			resultTextLocator: 'data',
+			source: url
+		});
+	});
+}
+
+function setVals(tgtID,srcValue) {
+	if (srcValue != null &&
+		srcValue != '' && 
+		srcValue != 'null') {
+		document.getElementById('s'+ tgtID).value=srcValue;
+	}
+}
+
+function setValsBeta(tgtID) {
+	
+}
+
+function toggleYesButton(srcID) { 
+	if (document.getElementById(srcID).value=='Yes') { 
+		// mark it "no"
+		document.getElementById(srcID).value='No';
+		document.getElementById(srcID +"-p").value='No';
+	} else { 
+		// marking datatype yes
+		document.getElementById(srcID).value='Yes';
+		document.getElementById(srcID +"-p").value='Yes';
+	}
+}
+
+function toggleBooleanButton(srcID) { 
+	if (document.getElementById(srcID).value=='yes') { 
+		// mark it "no"
+		// changeElement(srcID,yesclass);
+		// addClass(srcID,noclass);
+		document.getElementById(srcID).value='no';
+		document.getElementById(srcID +"-p").value=' ';
+	} else {
+		// marking datatype yes
+		// changeElement(srcID,noclass);
+		// addClass(srcID,yesclass);
+		document.getElementById(srcID).value='yes';
+		document.getElementById(srcID +"-p").value='\u2713';
+	}
+}
+
+function toggleFakeCB(srcID) { 
+	if (document.getElementById(srcID).value==' ' || document.getElementById(srcID).value=='') {
+		document.getElementById(srcID).value='\u2713';
+	} else {
+		document.getElementById(srcID).value=' ';
+	}
+}
+	
+function ajaxLoad(srcTarget,srcPage,srcVar,srcVal) {
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+	  xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+	  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.onreadystatechange=function() {
+	  if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+		 document.getElementById(srcTarget).innerHTML=xmlhttp.responseText;
+	  }
+	}
+	
+	xmlhttp.open("GET",srcPage +"?" + srcVar + "="+ srcVal,true);
+	xmlhttp.send();
+}
+	
+function displayFields(srcTarget,srcPage,srcVar,srcVal) {
+	if (document.getElementById("dp-"+ srcVal).value == "no") {
+		ajaxLoad(srcTarget,srcPage,srcVar,srcVal);
+		document.getElementById("dp-"+ srcVal).value	= "yes";
+	} else { 
+		document.getElementById("dp-"+ srcVal).value = "no";
+		document.getElementById(srcTarget).innerHTML = "";
+	}
+}
+
+function loading(srcID) { 
+	document.getElementById(srcID).innerHTML = "<br><br><img src=../includes/loading.gif>";	
+}
+
+function clearid(srcID) { 
+	document.getElementById(srcID).innerHTML = "";
+}
+
+/* 
+this is really interesting ajax form submission
+*/
+function submitAjaxForm(srcPrefix,srcLength,srcWidth) { 
+	ajaxSet('sp-param-length',srcLength);
+	
+	for (i = 0 ; i < srcLength ; i++) { 
+		for (j = 0 ; j < srcWidth ; j++) {
+			if (document.getElementById(srcPrefix +'-'+ i +'-' + j) != null) { 
+				ajaxSet(srcPrefix + '-'+ i +'-' + j,document.getElementById(srcPrefix +'-'+ i +'-' + j).value);
+			}
+		}
+	}
+}
+
+function setVal(srcID,srcVal) { 
+	document.getElementById(srcID).value = srcVal;	
+}
+
+function ajaxTouch(srcURL) { 
+	
+}
+
+function touchSession() {
+	/*
+	var x	= document.getElementById("loops").value;
+	x++;
+	document.getElementById("loops").value = x;
+	*/
+	ajaxTouch("../includes/sessions_touch.jsp");
+	setTimeout("touchSession()",intInterval);
+}
+
+function ajaxSet(srcVar,srcVal) {
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+	  xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+	  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.open("GET","../process/action_js_session.jsp?var="+ encodeURIComponent(srcVar) + "&val="+ encodeURIComponent(srcVal),true);
+	xmlhttp.send();	
+}
+
+function redirect(srcPage) {
+    window.location = srcPage;	
+}
+
+function ajaxSend(srcPage,srcVar,srcVal) {
+	if (window.XMLHttpRequest) {		// code for IE7+, Firefox, Chrome, Opera, Safari
+	  xmlhttp	= new XMLHttpRequest();
+	} else {									// code for IE6, IE5
+	  xmlhttp	= new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	
+	xmlhttp.open("GET",srcPage +"?" + encodeURIComponent(srcVar) + "="+ encodeURIComponent(document.getElementById(srcVal).value),true);
+	xmlhttp.send();		
+}
+
+function removeClass(src_id,src_class) {
+	document.getElementById(src_id).className = document.getElementById(src_id).className.replace( /(?:^|\s)'+ src_class +'(?!\S)/ , '' );
+}
+
+function addClass(src_id,src_class) { 
+	document.getElementById(src_id).className = document.getElementById(src_id).className + ' ' + src_class;
+}
+
+// this function is for the tracker for the metadata
+function changefd(fdname,tracker) {
+	var dtnow		= document.getElementById(tracker).value;
+	var dtfields	= dtnow.split(",");
+	
+	var match		= false;
+	for (i = 0 ; i < dtfields.length ; i++) { 
+		if (dtfields[i] == fdname) { 
+			match		= true;
+			break;
+		}
+	}
+	
+	if (!match) { 				
+		if (dtnow.length > 0) { 
+			dtnow			= dtnow + ",";	
+		}
+		dtnow				= dtnow + "" + fdname;
+		document.getElementById(tracker).value	= dtnow;
+	}
+}
+
+function changeElement(fdname,remove_class) {
+	document.getElementById(fdname).classList.remove(remove_class);
+}
+
+function changeElementNew(fdname,newclass) { 
+	document.getElementById(fdname).setAttribute("class", newclass);
+}
+
+function hiderows(id,startrow,endrow,width) { 
+	for (j = startrow ; j <= endrow ; j++) { 
+		hiderow(id,j,width);	
+	}
+}
+
+function toggledisplay(id) {
+	if (document.getElementById(id).style.display != null && document.getElementById(id).style.display.match('none')) { 
+		document.getElementById(id).style.display = "";
+	} else { 
+		document.getElementById(id).style.display = "none";
+	}
+}
+
+function hiderow(id,row,width) { 
+	for (i = 0 ; i < width ; i++) {
+		if (document.getElementById(id + "_"+ i + "_"+ row) != null) {
+			document.getElementById(id + "_"+ i + "_"+ row).style.display = "none";	
+		}
+	}
+}
+
+function showrow(id,row,width) { 
+	for (i = 0 ; i < width ; i++) {
+		if (document.getElementById(id + "_"+ i + "_"+ row) != null) {
+			document.getElementById(id + "_"+ i + "_"+ row).style.display = "block";	
+		}
+	}
+}
+
+function isStringMatch(strOriginal,strExp) { 
+	return ((strOriginal.toLowerCase()).indexOf(strExp.toLowerCase())) > -1;	
+}
+
+function searchtextRow(strDispID,strValID,strExp) {
+	if (isStringMatch(document.getElementById(strValID).value,strExp)) { 
+		document.getElementById(strDispID).style.display = "";
+	} else { 
+		document.getElementById(strDispID).style.display = "none";
+	}
+}
+
+function searchtextRange(strDispId,strValId,strExp,intLength) {
+	if (strExp.length > 0) {	
+		for (i = 0 ; i < intLength ; i++) { 
+			searchtextRow(strDispId + "-"+ i,strValId + "-"+ i,strExp);	
+		}
+	} else {
+		resetRange(strDispId,intLength);
+	}
+}
+
+function resetRange(strDispId,intLength) { 
+	for (i = 0 ; i < intLength ; i++) { 
+		document.getElementById(strDispId + "-" + i).style.display = "";
+	}
+}
+
+
+function addrow(sect,cols) {
+	var max			= parseInt(document.getElementById(sect + "-max").value);
+	var intCount	= parseInt(document.getElementById(sect + "-row").value);
+	var cols			= parseInt(document.getElementById(sect + "-cols").value);
+	if (intCount < max) {
+		var i = 0;
+		for (i = 0 ; i < cols ; i++) { 
+			if (document.getElementById("webmd_cell_"+ i + "_"+ intCount) != null) {
+				document.getElementById("webmd_cell_"+ i + "_"+ intCount).style.display = "block";
+			}
+		}
+		document.getElementById("vis_"+ sect + "-"+ intCount).value = "yes";
+		intCount = intCount + 1;
+		document.getElementById(sect + "-row").value = intCount;
+	} else { 
+		alert('Exceeded max number of '+ sect + ' filters for this sheet.  Please contact your administrator.');	
+	}
+}
+
+function delrow(sect) {
+	var intCount	= parseInt(document.getElementById(sect + "-row").value);
+	var cols			= parseInt(document.getElementById(sect + "-cols").value);
+	if (intCount > 1) {
+		intCount		= intCount - 1;
+		var i = 0;
+		for (i = 0 ; i < cols ; i++) { 
+			if (document.getElementById("webmd_cell_"+ i + "_"+ intCount) != null) {
+				document.getElementById("webmd_cell_"+ i + "_"+ intCount).style.display = "none";
+			}
+		}
+		document.getElementById("vis_"+ sect + "-"+ intCount).value = "no";
+		document.getElementById(sect + "-row").value = intCount;
+	}
+}
+
+
+function enableMDRow(strSect,intCol) {
+	intCount			= parseInt(document.getElementById(strSect +'-row').value) - 1;
+	enableGenericACFields(strSect,intCount,intCol);
+}
+
+function toggleHtml(srcID,srcYes,srcNo) { 
+	varval			= document.getElementById(srcID).innerHTML;
+	if (varval == srcYes) {
+		document.getElementById(srcID).innerHTML = srcNo;	
+	} else { 
+		document.getElementById(srcID).innerHTML = srcYes;
+	}
+}
+
+
+function addValue(srcID,strText) {
+	var newtext = document.getElementById(srcID).value;
+	document.getElementById(srcID).value += strText;
+}
+
+function getActiveWord(srcID) {
+	el					= document.getElementById(srcID);
+	str				= el.value;
+	caratPosition	= getCaret(srcID);
+	var stc		 	= str.substring(0, caratPosition);
+	var start 		= (stc.lastIndexOf(" ") + 1); //find where the word starts
+   //correct for line breaks (so it works on words seperated by spaces AND line breaks
+   if(start < stc.lastIndexOf('\n')){start = stc.lastIndexOf('\n') + 1;};
+   var activeWord = str.substring(start, caratPosition);
+   return activeWord;
+}
+
+function getCaret(srcID) {
+	node			= document.getElementById(srcID);
+	if (node.selectionStart) {
+		return node.selectionStart;
+	} else if (!document.selection) {
+		return 0;
+	}
+
+	var c = "\001",
+      sel = document.selection.createRange(),
+      dul = sel.duplicate(),
+      len = 0;
+
+      dul.moveToElementText(node);
+      sel.text = c;
+      len = dul.text.indexOf(c);
+      sel.moveStart('character',-1);
+      sel.text = "";
+	return len;
+}
+
+function setVal(srcID,strValue) { 
+	document.getElementById(srcID).value = strValue;	
+}
+
+function createDateCal(caldiv,tgtfield,year,month,date) {
+	YUI({ 
+    base: '/bibo/enterprise/js/build/'
+}).use('calendar', 'datatype-date',  function(Y) {
+		var calendar = new Y.Calendar({
+		contentBox: "#"+ caldiv,
+		width:'360px',
+		showPrevMonth: true,
+		showNextMonth: true,
+		date: new Date(year,month,date)}).render();
+			
+		var dtdate = Y.DataType.Date;
+		calendar.on("selectionChange", function (ev) {
+			var newDate = ev.newSelection[0];
+			var fld	= document.getElementById(tgtfield);
+			fld.value = dtdate.format(newDate);
+			hidediv(caldiv);
+		});	
+	});
+	hidediv(caldiv);
+}
+
+function createCal(caldiv,tgtfield) {
+	YUI({ 
+    base: '/bibo/enterprise/js/build/'
+}).use('calendar', 'datatype-date',  function(Y) {
+		var calendar = new Y.Calendar({
+		contentBox: "#"+ caldiv,
+		width:'360px',
+		showPrevMonth: true,
+		showNextMonth: true,
+		date: new Date()}).render();
+			
+		var dtdate = Y.DataType.Date;
+		calendar.on("selectionChange", function (ev) {
+			var newDate = ev.newSelection[0];
+			var fld	= document.getElementById(tgtfield);
+			fld.value = dtdate.format(newDate);
+			hidediv(caldiv);
+		});	
+	});
+	hidediv(caldiv);
+}
+
+function showdiv(elementid) { 
+	document.getElementById(elementid).style.display = "block";
+}
+
+function hidediv(elementid) { 
+	document.getElementById(elementid).style.display = "none";
+}
+
+function toggleElement(elementid) { 
+	if (document.getElementById(elementid).style.display == "none") {
+		document.getElementById(elementid).style.display = "block";
+		document.getElementById("div_"+ elementid).value = "block";
+	} else { 
+		document.getElementById(elementid).style.display = "none";
+		document.getElementById("div_"+ elementid).value = "none";
+	}
+}
+
+function setFocus(srcID) {
+	if (document.getElementById(srcID) != null) {
+		document.getElementById(srcID).focus();
+	}
+}
+
+function updateTables() {
+	var rowMax				= document.getElementById("Tables-row").value;
+	var tables				= "";
+	for (i = 0 ; i < rowMax ; i++) {
+		if (i > 0) tables	= tables + ",";
+		tbName				= document.getElementById("Tables-"+ i +"-1").value;
+		if (tbName != null && tbName.length > 0) {
+			tables			= tables + "" + tbName;
+		} else { 
+			break;	
+		}
+	}
+	document.getElementById("curr_table").value = tables;
+	var path				= document.getElementById("path").value;
+	ajaxTouch("../process/action_populate_fieldmd.jsp?path="+ path + "&tables="+ tables);
+}
+
+function getVal(srcID) { 
+	return document.getElementById(srcID).value;	
+}
+
+function addSuggestRowMD(srcSection, srcCol, srcType) {
+	var row					= getVal(srcSection +"-row")-1;
+	addSuggestMD(srcSection,row,srcCol,srcType);
+}
+
+function addSuggestMD(srcSection, srcRow, srcCol, srcType) {
+	enableAC('#'+ srcSection +'-'+ srcRow +'-'+ srcCol,'../includes/md_response.jsp?type='+ srcType +'&q={query}');
+}

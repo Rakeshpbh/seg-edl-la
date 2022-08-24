@@ -1,0 +1,27 @@
+Comment: feild sorting page line 358 to 379 line use to draggable functionality-
+
+
+//Get the list of li's in the lists and make them draggable//
+
+    var lis = Y.Node.all('#dndList ul li');
+    lis.each(function(v, k) {
+        var dd = new Y.DD.Drag({
+            node: v,
+            target: {
+                padding: '0 0 0 20'
+            }
+        }).plug(Y.Plugin.DDProxy, {
+            moveOnEnd: false
+        }).plug(Y.Plugin.DDConstrained, {
+            constrain2node: '#dndList'
+        }).addHandle('li');
+    });
+
+    //Create simple targets for the 2 lists.
+    var uls = Y.Node.all('#dndList ul');
+    uls.each(function(v, k) {
+        var tar = new Y.DD.Drop({
+            node: v
+        });
+    });
+//end the draggable//

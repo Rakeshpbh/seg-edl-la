@@ -1,0 +1,19 @@
+YUI({
+	combine: false,
+	base: '/bibo/enterprise/js/build/',
+	modules: {
+		"node-menunav-core-css": {
+			type: "css",
+			fullpath: "/bibo/enterprise/js/build/node-menunav/assets/node-menunav-core.css"
+		},
+		"custommenunavskin": {
+			type: "css",
+			fullpath: "/bibo/enterprise/js/build/css/menu.css",
+			supersedes: ['skin-sam-node-menunav']
+		}
+	}
+}).use({base: '/js/build/'},'node-menunav', "node-menunav-core-css", "custommenunavskin", function(Y) {
+	var menu = Y.one("#start_menu");
+	
+	menu.get("ownerDocument").get("documentElement").removeClass("yui3-loading");
+});
