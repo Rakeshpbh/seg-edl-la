@@ -90,7 +90,7 @@
 .yui3-menu-horizontal .yui3-menuitem-content {
 	/* ---------- Modifies top level menu ---------- */
 
-    padding: 2px 25px; /* adjusts spacing between top level menu entries */
+    padding: 0px 25px; /* adjusts spacing between top level menu entries */
     
 	/*border: solid 1px #efefef;
 	border-width: 1px 0px 0 1px; */
@@ -173,34 +173,30 @@
 	margin-right: 15px;	
 }
 
-
-
-
-/*********************dropdown css***************/
-.tb_join{
-	cursor: move;
+.yui3-menu-label-sub { 
+	margin-left: 15px;	
 }
-.dropdown {
-  position: relative;
+
+
+
+
+
+
+.yui3-menuitem-header{
+	  position: relative;
   display: inline-block;
 }
-.dropdown span:hover{
-color:#679BB8;
+
+.yui3-menuitem-header:hover #your-yahoo {
+  display: block;
 }
-.dropdown span{
-color:#595959;
-}
-.dropdown-content {
-     display: none;
+
+#your-yahoo{
+	display: none;
     position: absolute;
     background-color: #efefef;
     min-width: 120px;
-    padding: 9px 16px;
     z-index: 1;
     border: 1px solid #959393;
     top: 27px;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
 }

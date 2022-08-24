@@ -14,6 +14,6 @@ YUI({
 	}
 }).use({base: '/js/build/'},'node-menunav', "node-menunav-core-css", "custommenunavskin", function(Y) {
 	var menu = Y.one("#start_menu");
-	
+	menu.plug(Y.Plugin.NodeMenuNav, {autoSubmenuDisplay: true, hidedelay: 750,  mouseOutHideDelay: 300});
 	menu.get("ownerDocument").get("documentElement").removeClass("yui3-loading");
 });

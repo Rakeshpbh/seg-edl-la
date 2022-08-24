@@ -28,32 +28,7 @@
 
 }
 
-.yui3-menu-hidden {
 
-	/*
-		Position hidden menus outside the viewport boundaries to prevent them from
-		triggering scrollbars on the viewport.
-	*/
-
-	top: -10000px;
-	left: -10000px;
-
-	/*
-		Using "visibility:hidden" over "display" none because:
-
-		1)	As the "position" property for submenus is set to "absolute", they are out of
-			the document flow and take up no space.  Therefore, from that perspective use of
-			"display:none" is redundant.
-
-		2)	According to MSDN use of "display:none" is more expensive:
-			"Display is the more expensive of the two CSS properties, so if you are
-			making elements appear and disappear often, visibility will be faster."
-			(See http://msdn.microsoft.com/en-us/library/bb264005(VS.85).aspx)
-	*/
-
-	visibility: hidden;
-
-}
 
 .yui3-menu li {
 
